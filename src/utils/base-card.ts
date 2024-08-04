@@ -10,17 +10,11 @@ import {
     isAvailable,
     LovelaceLayoutOptions,
 } from "../ha";
-import "../shared/badge-icon";
-import "../shared/card";
 import {
     Appearance,
     AppearanceSharedConfig,
 } from "../shared/config/appearance-config";
 import { EntitySharedConfig } from "../shared/config/entity-config";
-import "../shared/shape-avatar";
-import "../shared/shape-icon";
-import "../shared/state-info";
-import "../shared/state-item";
 import { computeAppearance } from "./appearance";
 import { MushroomBaseElement } from "./base-element";
 import { computeInfoDisplay } from "./info";
@@ -53,6 +47,7 @@ export class MushroomBaseCard<
     }
 
     setConfig(config: T): void {
+        console.log("setting config base card", config);
         this._config = {
             tap_action: {
                 action: "more-info",
@@ -65,6 +60,7 @@ export class MushroomBaseCard<
     }
 
     public getCardSize(): number | Promise<number> {
+        console.log("getting card size");
         let height = 1;
         if (!this._config) return height;
         const appearance = computeAppearance(this._config);
@@ -104,6 +100,7 @@ export class MushroomBaseCard<
     }
 
     protected renderPicture(picture: string): TemplateResult {
+        console.log("rendering picture", picture);
         return html`
             <mushroom-shape-avatar
                 slot="icon"
@@ -113,6 +110,7 @@ export class MushroomBaseCard<
     }
 
     protected renderNotFound(config: BaseConfig): TemplateResult {
+        console.log("rendering not found", config);
         const appearance = computeAppearance(config);
         const rtl = computeRTL(this.hass);
 
@@ -139,7 +137,7 @@ export class MushroomBaseCard<
                         <mushroom-state-info
                             slot="info"
                             .primary=${config.entity}
-                            .secondary="Entity not found"
+                            .secondary=${"Entity not found"}
                         ></mushroom-state-info>
                     </mushroom-state-item>
                 </mushroom-card>
@@ -148,6 +146,7 @@ export class MushroomBaseCard<
     }
 
     protected renderIcon(stateObj: HassEntity, icon?: string): TemplateResult {
+        console.log("rendering icon", stateObj, icon);
         const active = isActive(stateObj);
         return html`
             <mushroom-shape-icon slot="icon" .disabled=${!active}>
@@ -161,6 +160,7 @@ export class MushroomBaseCard<
     }
 
     protected renderBadge(stateObj: HassEntity) {
+        console.log("rendering badge", stateObj);
         const unavailable = !isAvailable(stateObj);
         return unavailable
             ? html`
@@ -179,6 +179,7 @@ export class MushroomBaseCard<
         name: string,
         state?: string
     ): TemplateResult | null {
+        console.log("rendering state info", stateObj, appearance, name, state);
         const defaultState = this.hass.formatEntityState
             ? this.hass.formatEntityState(stateObj)
             : computeStateDisplay(

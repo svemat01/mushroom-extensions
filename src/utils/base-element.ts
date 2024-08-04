@@ -1,15 +1,10 @@
 import { css, CSSResultGroup, LitElement, PropertyValues } from "lit";
 import { property } from "lit/decorators.js";
 import { atLeastHaVersion, HomeAssistant } from "../ha";
-import "../shared/badge-icon";
-import "../shared/card";
-import "../shared/shape-avatar";
-import "../shared/shape-icon";
-import "../shared/state-info";
-import "../shared/state-item";
+
 // import { animations } from "../utils/entity-styles";
 // import { defaultColorCss, defaultDarkColorCss } from "./colors";
-// import { themeColorCss, themeVariables } from "./theme";
+// import { themeClorCss, themeVariables } from "./theme";
 
 export function computeDarkMode(hass?: HomeAssistant): boolean {
     if (!hass) return false;
@@ -17,8 +12,23 @@ export function computeDarkMode(hass?: HomeAssistant): boolean {
 }
 export class MushroomBaseElement extends LitElement {
     @property({ attribute: false }) public hass!: HomeAssistant;
+    // private _hass!: HomeAssistant;
+
+    // set hass(hass: HomeAssistant) {
+    //     this._hass = hass;
+    //     this.hassUpdated(hass);
+    // }
+
+    // get hass(): HomeAssistant {
+    //     return this._hass;
+    // }
+
+    // protected hassUpdated(hass: HomeAssistant): void {
+    //     return;
+    // }
 
     protected firstUpdated(_changedProperties: PropertyValues): void {
+        console.log("first updated");
         this.toggleAttribute(
             "pre-2024-8",
             !atLeastHaVersion(this.hass.config.version, 2024, 8)
@@ -27,13 +37,6 @@ export class MushroomBaseElement extends LitElement {
 
     protected updated(changedProps: PropertyValues): void {
         super.updated(changedProps);
-        if (changedProps.has("hass") && this.hass) {
-            const currentDarkMode = computeDarkMode(changedProps.get("hass"));
-            const newDarkMode = computeDarkMode(this.hass);
-            if (currentDarkMode !== newDarkMode) {
-                this.toggleAttribute("dark-mode", newDarkMode);
-            }
-        }
     }
 
     // static get styles(): CSSResultGroup {
