@@ -10,6 +10,7 @@ import { loadHaComponents } from "../../utils/loader";
 import { assert } from "superstruct";
 import { MushroomBaseElement } from "../../utils/base-element";
 import { mdiPlusBox } from "@mdi/js";
+import { EditorTarget } from "../../utils/editor";
 
 const SCHEMA: HaFormSchema[] = [
     {
@@ -38,35 +39,47 @@ const SCHEMA: HaFormSchema[] = [
             { name: "icon_color", selector: { mush_color: {} } },
         ],
     },
-    {
-        name: "extra_entities",
-        selector: {
-            entity: {
-                multiple: true,
-                domain: SENSOR_ENTITY_DOMAINS,
-            },
-        },
-    },
+    // {
+    //     name: "extra_entities",
+    //     selector: {
+    //         entity: {
+    //             multiple: true,
+    //             domain: SENSOR_ENTITY_DOMAINS,
+    //         },
+    //     },
+    // },
     ...computeActionsFormSchema(),
 ];
 
-// const EXTRA_SCHEMA: HaFormSchema[] = [
-//     {
-//         type: "grid",
-//         name: "",
-//         schema: [
-//             {
-//                 name: "entity",
-//                 selector: {
-//                     entity: {
-//                         domain: SENSOR_ENTITY_DOMAINS,
-//                     },
-//                 },
-//             },
-//             { name: "color", selector: { mush_color: {} } },
-//         ],
-//     },
-// ];
+const EXTRA_SCHEMA: HaFormSchema[] = [
+    {
+        type: "grid",
+        name: "",
+        schema: [
+            {
+                name: "entity",
+                selector: {
+                    entity: {
+                        domain: SENSOR_ENTITY_DOMAINS,
+                    },
+                },
+            },
+            {
+                name: "name",
+                selector: {
+                    text: {},
+                },
+            },
+            { name: "color", selector: { mush_color: {} } },
+        ],
+    },
+];
+
+export interface SubElementEditorConfig {
+    index?: number;
+    elementConfig?: any;
+    type: string;
+}
 
 @customElement(GRAPH_CARD_EDITOR_NAME)
 export class GraphCardEditor
@@ -81,7 +94,7 @@ export class GraphCardEditor
     }
 
     public setConfig(config: GraphCardConfig): void {
-        console.log("setting config", config);
+        // console.log("setting config", config);
         assert(config, graphCardConfigStruct);
         this._config = config;
     }
@@ -92,75 +105,123 @@ export class GraphCardEditor
         );
     };
 
+    @state() private _subElementEditorConfig?: SubElementEditorConfig;
+
     @property() protected _selectedCard = 0;
     protected render() {
         if (!this.hass || !this._config) {
             return nothing;
         }
 
-        return html`
-            <ha-form
-                .hass=${this.hass}
-                .data=${this._config}
-                .schema=${SCHEMA}
-                .computeLabel=${this._computeLabel}
-                @value-changed=${this._valueChanged}
-            ></ha-form>
-        `;
+        // return html`
+        //     <ha-form
+        //         .hass=${this.hass}
+        //         .data=${this._config}
+        //         .schema=${SCHEMA}
+        //         .computeLabel=${this._computeLabel}
+        //         @value-changed=${this._valueChanged}
+        //     ></ha-form>
+        // `;
 
         const selected = this._selectedCard!;
 
-        // return html`
-        //     <div class="card-config">
-        //         <ha-form
-        //             .hass=${this.hass}
-        //             .data=${this._config}
-        //             .schema=${SCHEMA}
-        //             .computeLabel=${this._computeLabel}
-        //             @value-changed=${this._valueChanged}
-        //         ></ha-form>
-        //         <div class="extra-entities">
-        //             ${this._config.extra_entities?.map(
-        //                 (entity, idx) => html`
-        //                     <ha-form
-        //                         .hass=${this.hass}
-        //                         .data=${entity}
-        //                         .schema=${EXTRA_SCHEMA}
-        //                         .computeLabel=${this._computeLabel}
-        //                         @value-changed=${(ev: CustomEvent) =>
-        //                             this._extraEntityValueChanged(ev, idx)}
-        //                     ></ha-form>
-        //                 `
-        //             )}
-        //         </div>
-        //         <ha-button
-        //             .label=${"Add extra entity"}
-        //             @click=${this._handleAddExtraEntity}
-        //             class="add-extra-entity"
-        //         >
-        //             <ha-svg-icon
-        //                 style="margin-left: 8px;"
-        //                 .path=${mdiPlusBox}
-        //             ></ha-svg-icon>
-        //         </ha-button>
-        //     </div>
-        // `;
+        return html`
+            <div class="card-config">
+                <ha-form
+                    .hass=${this.hass}
+                    .data=${this._config}
+                    .schema=${SCHEMA}
+                    .computeLabel=${this._computeLabel}
+                    @value-changed=${this._valueChanged}
+                ></ha-form>
+                <div class="extra-entities">
+                    ${this._config.extra_entities?.map(
+                        (entity, idx) => html`
+                            <div class="extra-entity">
+                                <div class="extra-entity-label">
+                                    <p>Extra Entity ${idx + 1}</p>
+                                    <ha-icon-button
+                                        .label=${"Remove Enitity"}
+                                        class="remove-icon"
+                                        .index=${idx}
+                                        @click=${this._removeChip}
+                                    >
+                                        <ha-icon icon="mdi:close"></ha-icon>
+                                    </ha-icon-button>
+                                </div>
+                                <ha-form
+                                    .hass=${this.hass}
+                                    .data=${entity}
+                                    .schema=${EXTRA_SCHEMA}
+                                    .computeLabel=${this._computeLabel}
+                                    .configValue=${"extra_entities"}
+                                    .index=${idx}
+                                    @value-changed=${this._valueChanged}
+                                ></ha-form>
+                            </div>
+                        `
+                    )}
+                </div>
+                <ha-button
+                    .label=${"Add extra entity"}
+                    @click=${this._handleAddExtraEntity}
+                    class="add-extra-entity"
+                >
+                    <ha-svg-icon
+                        style="margin-left: 8px;"
+                        .path=${mdiPlusBox}
+                    ></ha-svg-icon>
+                </ha-button>
+            </div>
+        `;
     }
 
-    // protected _handleAddExtraEntity() {
-    //     if (!this._config) {
-    //         return;
-    //     }
+    protected _handleAddExtraEntity() {
+        if (!this._config) {
+            return;
+        }
 
-    //     this._config.extra_entities = [
-    //         ...(this._config.extra_entities ?? []),
-    //         { entity: "" },
-    //     ];
-    // }
+        if (!this._config.extra_entities) {
+            this._config.extra_entities = [];
+        }
+
+        this._config.extra_entities.push({ entity: "" });
+    }
 
     private _valueChanged(ev: CustomEvent): void {
-        console.log("value changed", ev.detail.value);
-        fireEvent(this, "config-changed", { config: ev.detail.value as any });
+        if (!this._config || !this.hass) {
+            return;
+        }
+        const target = ev.target! as EditorTarget;
+        const configValue =
+            target.configValue || this._subElementEditorConfig?.type;
+        const value = target.checked ?? ev.detail.value ?? target.value;
+
+        if (configValue === "extra_entities") {
+            const index = (ev.currentTarget as any).index;
+            const newExtraEntities =
+                this._config.extra_entities?.concat() || [];
+            newExtraEntities[index] = value;
+            this._config.extra_entities = newExtraEntities;
+        } else {
+            this._config = {
+                ...this._config,
+                ...value,
+            };
+        }
+
+        // console.log("viva la value changed", value, configValue);
+        fireEvent(this, "config-changed", { config: this._config as any });
+    }
+
+    private _removeChip(ev: CustomEvent): void {
+        if (!this._config) return;
+
+        const index = (ev.currentTarget as any).index;
+
+        this._config.extra_entities?.splice(index, 1);
+
+        fireEvent(this, "config-changed", { config: this._config as any });
     }
 
     public static get styles(): CSSResultGroup {
@@ -175,6 +236,23 @@ export class GraphCardEditor
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
+            }
+
+            .extra-entity-label {
+                display: flex;
+                align-items: center;
+                flex-direction: row;
+                gap: 8px;
+            }
+
+            .remove-icon,
+            .edit-icon {
+                --mdc-icon-button-size: 36px;
+                color: var(--secondary-text-color);
+            }
+
+            .remove-icon ha-icon {
+                display: flex;
             }
         `;
     }

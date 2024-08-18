@@ -129,19 +129,19 @@ export class GraphCard extends MushroomBaseCard implements LovelaceCard {
 
     setConfig(config: GraphCardConfig): void {
         this._config = config;
-        console.log("setting config", config);
+        // console.log("setting config", config);
 
         this.vivaLaUpdater();
     }
 
     protected async vivaLaUpdater() {
-        console.log("updating", this._config, this.hass, this._stateObj);
+        // console.log("updating", this._config, this.hass, this._stateObj);
         if (!this.hass) {
-            console.log("no hass");
+            // console.log("no hass");
             await new Promise((resolve) => {
                 this.hassResolve = resolve;
             });
-            console.log("resolved");
+            // console.log("resolved");
         }
 
         if (!this._config || !this.hass || !this._config.entity) {
@@ -178,7 +178,7 @@ export class GraphCard extends MushroomBaseCard implements LovelaceCard {
     }
 
     private async updateHeader() {
-        console.log("updating header", this._config, this.hass, this._stateObj);
+        // console.log("updating header", this._config, this.hass, this._stateObj);
         if (!this.hass || !this._config) return;
 
         this.templateCard = await createCardElement({
@@ -213,7 +213,7 @@ export class GraphCard extends MushroomBaseCard implements LovelaceCard {
     }
 
     private async updateGraph() {
-        console.log("updating graph", this._config, this.hass, this._stateObj);
+        // console.log("updating graph", this._config, this.hass, this._stateObj);
         if (!this.hass || !this._config) return;
 
         this.graphCard = await createCardElement({
@@ -224,7 +224,16 @@ export class GraphCard extends MushroomBaseCard implements LovelaceCard {
                     name: this._config.name,
                     color: this._config.icon_color,
                 },
-                ...(this._config.extra_entities?.map((entity) => {}) ?? []),
+                ...(
+                    this._config.extra_entities?.map(
+                        (entity) =>
+                            entity.entity && {
+                                entity: entity.entity,
+                                name: entity.name,
+                                color: entity.color,
+                            }
+                    ) ?? []
+                ).filter(Boolean),
             ],
             hours_to_show: 24,
             line_width: 3,
@@ -253,7 +262,7 @@ export class GraphCard extends MushroomBaseCard implements LovelaceCard {
                 `,
             },
         });
-        console.log("graph card", this.graphCard);
+        // console.log("graph card", this.graphCard);
 
         this.graphCard.hass = this.hass;
         this.graphCard.ontouchstart = (e) => {

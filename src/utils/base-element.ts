@@ -28,7 +28,7 @@ export class MushroomBaseElement extends LitElement {
     // }
 
     protected firstUpdated(_changedProperties: PropertyValues): void {
-        console.log("first updated");
+        // console.log("first updated");
         this.toggleAttribute(
             "pre-2024-8",
             !atLeastHaVersion(this.hass.config.version, 2024, 8)

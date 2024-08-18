@@ -18,11 +18,12 @@ export const graphCardConfigStruct = assign(
         icon_color: optional(string()),
         extra_entities: optional(
             array(
-                string()
-                // object({
-                //     entity: string(),
-                //     color: optional(string()),
-                // })
+                // string()
+                object({
+                    entity: optional(string()),
+                    color: optional(string()),
+                    name: optional(string()),
+                })
             )
         ),
     })
