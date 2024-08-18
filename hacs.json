@@ -1,0 +1,6 @@
+{
+    "name": "Mushroom Extensions",
+    "filename": "mushroom-extensions.js",
+    "homeassistant": "2024.7.0b0",
+    "render_readme": true
+}
